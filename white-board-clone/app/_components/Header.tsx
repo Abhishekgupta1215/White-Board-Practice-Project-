@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
-import { LoginLink, RegisterLink } from '@kinde-oss/kinde-auth-nextjs'
+import AuthButton from './AuthButton'
 
 function Header() {
   return (
@@ -45,25 +45,7 @@ function Header() {
       </nav>
 
       <div className="flex items-center gap-4">
-        <div className="sm:flex sm:gap-4">
-          <a
-            className="block rounded-md px-5 py-2.5 text-sm 
-            font-medium text-white transition"
-            href="#"
-          >
-           <LoginLink>Login</LoginLink>
-          </a>
-
-          <a
-            className="hidden rounded-md bg-gray-100 
-            px-5 py-2.5 text-sm font-medium 
-            text-black transition 
-            hover:text-slate-600 sm:block"
-            href="#"
-          >
-            <RegisterLink>Register</RegisterLink>
-          </a>
-        </div>
+        <AuthButton />
 
         <button className="block rounded-sm bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 md:hidden">
           <span className="sr-only">Toggle menu</span>
