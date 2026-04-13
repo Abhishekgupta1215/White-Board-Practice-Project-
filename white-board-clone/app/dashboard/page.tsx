@@ -1,17 +1,47 @@
-import React from 'react'
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
-import { redirect } from 'next/navigation'
+"use client"
+import React, { useEffect, useState, useRef } from 'react'
+import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
-async function Dashboard() {
-  const { isAuthenticated, getUser } = getKindeServerSession()
+function Dashboard() {
+  const { user, isAuthenticated, isLoading } = useKindeBrowserClient()
+  const getUserData = useQuery(api.user.getUser, user?.email ? { email: user.email } : "skip")
+  const createUser = useMutation(api.user.createUser)
+  const [isCreatingUser, setIsCreatingUser] = useState(false)
+  const hasAttemptedUserCreation = useRef(false)
   
-  if (!(await isAuthenticated())) {
-    redirect('/api/auth/login')
+  useEffect(() => {
+    if (user && getUserData !== undefined && !isCreatingUser && !hasAttemptedUserCreation.current) {
+      if (getUserData.length === 0) {
+        setIsCreatingUser(true)
+        hasAttemptedUserCreation.current = true
+        
+        createUser({ 
+          name: user.given_name || '',
+          email: user.email || '',
+          image: user.picture || ''
+        }).then((resp) => {
+          console.log('User created:', resp)
+        }).catch((error) => {
+          console.error('Error creating user:', error)
+        }).finally(() => {
+          setIsCreatingUser(false)
+        })
+      }
+    }
+  }, [user, getUserData]) // Removed createUser from dependencies
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>
   }
 
-  const user = await getUser()
+  if (!isAuthenticated) {
+    window.location.href = '/api/auth/login'
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
