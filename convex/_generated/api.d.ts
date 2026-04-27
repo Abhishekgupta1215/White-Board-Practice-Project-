@@ -8,11 +8,9 @@
  * @module
  */
 
-import type * as convex__generated_api from "../convex/_generated/api.js";
-import type * as convex__generated_server from "../convex/_generated/server.js";
-import type * as convex_files from "../convex/files.js";
-import type * as convex_teams from "../convex/teams.js";
-import type * as convex_users from "../convex/users.js";
+import type * as files from "../files.js";
+import type * as teams from "../teams.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -21,11 +19,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  "convex/_generated/api": typeof convex__generated_api;
-  "convex/_generated/server": typeof convex__generated_server;
-  "convex/files": typeof convex_files;
-  "convex/teams": typeof convex_teams;
-  "convex/users": typeof convex_users;
+  files: typeof files;
+  teams: typeof teams;
+  users: typeof users;
 }>;
 
 /**

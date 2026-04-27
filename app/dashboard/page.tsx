@@ -1,6 +1,5 @@
 "use client"
-import React, { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useEffect, useRef } from 'react'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -9,43 +8,39 @@ import { api } from '@/convex/_generated/api'
 
 function Dashboard() {
   const { user, isAuthenticated, isLoading } = useKindeBrowserClient()
-  const router = useRouter()
-  const getUserData = useQuery(api.user.getUser, user?.email ? { email: user.email } : "skip")
-  const createUser = useMutation(api.user.createUser)
-  const [isCreatingUser, setIsCreatingUser] = useState(false)
-  const hasAttemptedUserCreation = useRef(false)
   
+  // useQuery returns undefined while loading, null if not found, and the object if found
+  const userData = useQuery(api.users.getUser, user?.email ? { email: user.email } : "skip")
+  const createUser = useMutation(api.users.createUser)
+  const hasAttemptedUserCreation = useRef(false)
+
   useEffect(() => {
-    if (user && getUserData !== undefined && !isCreatingUser && !hasAttemptedUserCreation.current) {
-      if (getUserData.length === 0) {
-        setIsCreatingUser(true)
-        hasAttemptedUserCreation.current = true
-        
-        createUser({ 
-          name: user.given_name || '',
-          email: user.email || '',
-          image: user.picture || ''
-        }).then((resp) => {
-          console.log('User created:', resp)
-        }).catch((error) => {
+    // Only attempt creation when we know the user is authenticated 
+    // AND we've confirmed they don't exist in Convex (userData === null)
+    if (!isLoading && isAuthenticated && user?.email && userData === null && !hasAttemptedUserCreation.current) {
+      hasAttemptedUserCreation.current = true
+      
+      createUser({
+        name: user.given_name || user.family_name || 'User',
+        email: user.email || '',
+        image: user.picture || '',
+      })
+        .then((resp) => console.log('User created in Convex:', resp))
+        .catch((error) => {
           console.error('Error creating user:', error)
-        }).finally(() => {
-          setIsCreatingUser(false)
+          hasAttemptedUserCreation.current = false // reset for retry
         })
-      }
     }
-  }, [user, getUserData]) // Removed createUser from dependencies
+  }, [isLoading, isAuthenticated, user, userData, createUser])
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>
+  // Redirecting is handled by middleware.ts, so we only need to show a loading state here.
+  if (isLoading || userData === undefined) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    )
   }
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Use Next navigation push to avoid full-page reload loops
-      router.push('/api/auth/login')
-    }
-  }, [isLoading, isAuthenticated, router])
 
   if (!isAuthenticated) {
     return null
